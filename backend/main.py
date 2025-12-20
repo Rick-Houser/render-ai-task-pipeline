@@ -7,7 +7,7 @@ from pgvector.sqlalchemy import Vector
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 app = FastAPI()
 engine = create_engine(os.getenv("DATABASE_URL"))
 Session = sessionmaker(bind=engine)
