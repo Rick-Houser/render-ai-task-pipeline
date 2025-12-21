@@ -10,6 +10,8 @@ celery_app = Celery(
     backend=os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 )
 
+# Configure Celery to not eagerly connect
 celery_app.conf.update(
     result_expires=3600,
+    broker_connection_retry_on_startup=True,
 )

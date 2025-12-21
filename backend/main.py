@@ -12,12 +12,17 @@ class TaskCreate(BaseModel):
     description: str
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+print("Environment loaded")
 app = FastAPI()
+print("FastAPI app created")
 engine = create_engine(os.getenv("DATABASE_URL"))
+print("Database engine created")
 Session = sessionmaker(bind=engine)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+print("OpenAI client created")
 
 Base.metadata.create_all(engine)
+print("Database tables created")
 
 @app.post("/tasks")
 def create_task(task: TaskCreate):
