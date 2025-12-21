@@ -67,7 +67,7 @@ services:
 
   - type: keyvalue
     name: task_queue
-    plan: standard
+    plan: free
     ipAllowList:
       - source: 0.0.0.0/0
         description: Allow all external connections
@@ -76,5 +76,5 @@ databases:
   - name: ai_task_db
     databaseName: ai_task_db
     user: ai_user
-    plan: standard
+    plan: basic-256mb
     postgresMajorVersion: "15"
