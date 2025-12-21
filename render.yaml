@@ -2,6 +2,7 @@ services:
   - type: web
     name: api
     runtime: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
@@ -30,6 +31,7 @@ services:
   - type: worker
     name: task_worker
     runtime: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: celery -A celery_app worker --loglevel=info
@@ -76,5 +78,5 @@ databases:
   - name: ai_task_db
     databaseName: ai_task_db
     user: ai_user
-    plan: basic-256mb
+    plan: free
     postgresMajorVersion: "15"
