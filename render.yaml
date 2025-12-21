@@ -1,10 +1,10 @@
 services:
   - type: web
     name: api
-    env: python
-    repo: https://github.com/your-repo/render-ai-task-pipeline
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -21,19 +21,18 @@ services:
 
   - type: web
     name: frontend
-    env: static
-    repo: https://github.com/your-repo/render-ai-task-pipeline
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     autoDeploy: true
 
   - type: worker
     name: task_worker
-    env: python
-    repo: https://github.com/your-repo/render-ai-task-pipeline
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && celery -A celery_app worker --loglevel=info
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A celery_app worker --loglevel=info
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -46,18 +45,17 @@ services:
           property: connectionString
       - key: OPENAI_API_KEY
         sync: false
-    autoScale:
-      enabled: true
-      min: 1
-      max: 5
-      cpu: 70
+    scaling:
+      minInstances: 1
+      maxInstances: 5
+      targetCPUPercent: 70
 
   - type: cron
     name: daily_summary
-    env: python
-    repo: https://github.com/your-repo/render-ai-task-pipeline
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd cron && python daily_summary.py
+    runtime: python
+    rootDir: cron
+    buildCommand: pip install -r ../backend/requirements.txt
+    startCommand: python daily_summary.py
     schedule: "0 0 * * *"
     envVars:
       - key: DATABASE_URL
@@ -67,13 +65,16 @@ services:
       - key: OPENAI_API_KEY
         sync: false
 
+  - type: keyvalue
+    name: task_queue
+    plan: standard
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all external connections
+
 databases:
   - name: ai_task_db
     databaseName: ai_task_db
     user: ai_user
     plan: standard
-    postgresMajorVersion: 15
-
-redis:
-  - name: task_queue
-    plan: standard
+    postgresMajorVersion: "15"
