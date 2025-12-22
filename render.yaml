@@ -3,9 +3,9 @@ services:
     name: api
     runtime: python
     plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -32,9 +32,9 @@ services:
     name: task_worker
     runtime: python
     plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A celery_app worker --loglevel=info
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: celery -A backend.celery_app worker --loglevel=info
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -51,9 +51,9 @@ services:
   - type: cron
     name: daily_summary
     runtime: python
-    rootDir: cron
-    buildCommand: pip install -r ../backend/requirements.txt
-    startCommand: python daily_summary.py
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python cron/daily_summary.py
     schedule: "0 0 * * *"
     envVars:
       - key: DATABASE_URL
