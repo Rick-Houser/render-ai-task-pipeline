@@ -7,12 +7,15 @@ const App: React.FC = () => {
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Use production API URL
+  const API_BASE_URL = 'https://api-zqmv.onrender.com';
+
   const createTask = async () => {
     if (!description.trim()) return;
 
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:8000/tasks', { description });
+      const res = await axios.post(`${API_BASE_URL}/tasks`, { description });
       console.log(res.data);
       setDescription(''); // Clear input after successful creation
     } catch (error) {
@@ -27,7 +30,7 @@ const App: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:8000/query', { question: query });
+      const res = await axios.post(`${API_BASE_URL}/query`, { question: query });
       setResults(res.data);
     } catch (error) {
       console.error('Error searching tasks:', error);
