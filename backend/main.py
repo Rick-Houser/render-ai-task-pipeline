@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from openai import OpenAI
 from dotenv import load_dotenv
 from .models import Base, Task
-from .tasks import process_task_summary
 from pydantic import BaseModel
 import os
 
@@ -30,17 +29,31 @@ def create_task(task: TaskCreate):
     # Generate embedding
     embedding_resp = client.embeddings.create(model="text-embedding-ada-002", input=description)
     embedding = embedding_resp.data[0].embedding
-    
+
+    # Generate AI summary and priority synchronously
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": f"Summarize and prioritize this task: {description}"}
+        ]
+    )
+    content = response.choices[0].message.content
+
+    # Parse summary and priority
+    try:
+        summary = content.split("Summary:")[1].split("Priority:")[0].strip()
+        priority = content.split("Priority:")[1].strip()
+    except:
+        summary = content
+        priority = "Medium"
+
     with Session() as session:
-        new_task = Task(description=description, summary="", priority="", embedding=embedding)
+        new_task = Task(description=description, summary=summary, priority=priority, embedding=embedding)
         session.add(new_task)
         session.commit()
         task_id = new_task.id
-    
-    # Enqueue async processing
-    process_task_summary.delay(task_id)
-    
-    return {"id": task_id, "message": "Task created, processing in background"}
+
+    return {"id": task_id, "message": "Task created with AI summary", "summary": summary, "priority": priority}
 
 class QueryRequest(BaseModel):
     question: str
