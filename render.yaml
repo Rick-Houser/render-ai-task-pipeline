@@ -47,10 +47,6 @@ services:
           property: connectionString
       - key: OPENAI_API_KEY
         sync: false
-    scaling:
-      minInstances: 1
-      maxInstances: 5
-      targetCPUPercent: 70
 
   - type: cron
     name: daily_summary
