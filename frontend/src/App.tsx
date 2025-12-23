@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
 const App: React.FC = () => {
   const [description, setDescription] = useState('');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Use production API URL
   const API_BASE_URL = 'https://api-zqmv.onrender.com';
@@ -13,7 +15,7 @@ const App: React.FC = () => {
   const createTask = async () => {
     if (!description.trim()) return;
 
-    setIsLoading(true);
+    setIsAdding(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/tasks`, { description });
       console.log(res.data);
@@ -21,14 +23,14 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error creating task:', error);
     } finally {
-      setIsLoading(false);
+      setIsAdding(false);
     }
   };
 
   const searchTasks = async () => {
     if (!query.trim()) return;
 
-    setIsLoading(true);
+    setIsSearching(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/query`, { question: query });
       setResults(res.data);
@@ -36,7 +38,7 @@ const App: React.FC = () => {
       console.error('Error searching tasks:', error);
       setResults([]);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -44,6 +46,15 @@ const App: React.FC = () => {
     if (e.key === 'Enter') {
       action();
     }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const colors: Record<string, string> = {
+      High: 'bg-red-100 text-red-800',
+      Medium: 'bg-yellow-100 text-yellow-800',
+      Low: 'bg-green-100 text-green-800'
+    };
+    return `px-2 py-1 text-xs rounded-full ${colors[priority] || 'bg-gray-100 text-gray-800'}`;
   };
 
   return (
@@ -57,7 +68,7 @@ const App: React.FC = () => {
 
         {/* Add Task Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Task</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Add a New Task</h2>
           <div className="space-y-3">
             <input
               type="text"
@@ -66,14 +77,14 @@ const App: React.FC = () => {
               onKeyPress={(e) => handleKeyPress(e, createTask)}
               placeholder="Enter task description..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              disabled={isLoading}
+              disabled={isAdding}
             />
             <button
               onClick={createTask}
-              disabled={isLoading || !description.trim()}
+              disabled={isAdding || !description.trim()}
               className="w-full bg-blue-800 hover:bg-blue-900 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
-              {isLoading ? (
+              {isAdding ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               ) : null}
               Add Task
@@ -92,32 +103,35 @@ const App: React.FC = () => {
               onKeyPress={(e) => handleKeyPress(e, searchTasks)}
               placeholder="Ask a question about your tasks..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-              disabled={isLoading}
+              disabled={isSearching}
             />
             <button
               onClick={searchTasks}
-              disabled={isLoading || !query.trim()}
+              disabled={isSearching || !query.trim()}
               className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              {isSearching ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               ) : null}
               Search
             </button>
           </div>
         </div>
 
-        {/* Results Card */}
+        {/* Results */}
         {results.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Search Results</h2>
-            <div className="space-y-3">
-              {results.map((result, index) => (
-                <div
-                  key={index}
-                  className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <p className="text-gray-700">{result.summary}</p>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Results ({results.length})</h2>
+            <div className="space-y-4">
+              {results.map((task) => (
+                <div key={task.id} className="border p-4 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{task.description}</h3>
+                    <span className={getPriorityBadge(task.priority)}>{task.priority}</span>
+                  </div>
+                  <div className="text-gray-600 prose prose-sm max-w-none">
+                    <ReactMarkdown>{task.summary}</ReactMarkdown>
+                  </div>
                 </div>
               ))}
             </div>
@@ -125,7 +139,7 @@ const App: React.FC = () => {
         )}
 
         {/* Loading indicator for search */}
-        {isLoading && results.length === 0 && (
+        {isSearching && results.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
             <div className="flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
