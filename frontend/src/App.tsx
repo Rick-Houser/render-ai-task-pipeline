@@ -76,7 +76,7 @@ const App: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, createTask)}
               placeholder="Enter task description..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder:text-gray-500"
               disabled={isAdding}
             />
             <button
@@ -102,7 +102,7 @@ const App: React.FC = () => {
               onChange={(e) => setQuery(e.target.value)}
               onKeyPress={(e) => handleKeyPress(e, searchTasks)}
               placeholder="Ask a question about your tasks..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder:text-gray-500"
               disabled={isSearching}
             />
             <button
